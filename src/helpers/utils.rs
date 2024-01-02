@@ -1,4 +1,4 @@
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use openssl::hash::{hash, MessageDigest};
 use openssl::pkey::PKey;
 use openssl::sign::Signer;
@@ -23,7 +23,8 @@ pub fn generate_timestamp() -> Result<u128, std::time::SystemTimeError> {
 ///
 ///
 pub fn sign_query_string(query_string: &str, secret: &str) -> Result<String, AppError> {
-    let mut mac = Hmac::<Sha256>::new_varkey(secret.as_bytes()).map_err(|_| AppError::HmacError)?;
+    let mut mac =
+        Hmac::<Sha256>::new_from_slice(secret.as_bytes()).map_err(|_| AppError::HmacError)?;
     mac.update(query_string.as_bytes());
     Ok(bytes_to_hex(mac.finalize().into_bytes().to_vec()))
 }
@@ -32,7 +33,10 @@ pub fn sign_query_string(query_string: &str, secret: &str) -> Result<String, App
 ///
 ///
 fn bytes_to_hex(bytes: Vec<u8>) -> String {
-    bytes.iter().map(|byte| format!("{:02x}", byte)).collect::<String>()
+    bytes
+        .iter()
+        .map(|byte| format!("{:02x}", byte))
+        .collect::<String>()
 }
 
 ///
